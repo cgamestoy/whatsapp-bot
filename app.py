@@ -368,8 +368,10 @@ def webhook():
         mensaje = mensaje_data["text"]["body"]
 
         print("=== MENSAJE WHATSAPP ===", flush=True)
-        print("Número:", numero, flush=True)
-        print("Mensaje:", mensaje)
+
+        numero = mensaje_data.get("from")
+        mensaje = mensaje_data.get("text", {}).get("body")
+
 
         respuesta = procesar_mensaje(mensaje)
         print("Respuesta generada:", respuesta)
