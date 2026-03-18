@@ -35,7 +35,7 @@ def procesar_mensaje(mensaje: str) -> str:
         "buen dia",
         "buenas",
         "buenas tardes",
-        "buenas noches"
+        "buenas noches",
     ]
 
     if any(saludo in mensaje for saludo in saludos) or mensaje in ["menu", "menú", "inicio"]:
@@ -120,15 +120,19 @@ def enviar_mensaje_whatsapp(numero: str, texto: str):
 
     headers = {
         "Authorization": f"Bearer {WHATSAPP_TOKEN}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
     payload = {
         "messaging_product": "whatsapp",
         "to": numero,
         "type": "text",
-        "text": {"body": texto}
+        "text": {"body": texto},
     }
+
+    print("=== ENVÍO A META ===")
+    print("URL:", url)
+    print("Payload:", payload)
 
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=20)
@@ -147,8 +151,8 @@ def inicio():
             "/chat",
             "/productos",
             "/buscar?q=latex",
-            "/webhook"
-        ]
+            "/webhook",
+        ],
     })
 
 
@@ -336,10 +340,16 @@ def webhook():
         return jsonify({"respuesta": respuesta}), 200
 
     try:
-        cambios = data["entry"][0]["changes"][0]["value"]
+        entry = data["entry"][0]
+        changes = entry["changes"][0]
+        cambios = changes["value"]
+
+        print("=== VALUE COMPLETO ===")
+        print(cambios)
 
         if "messages" not in cambios:
-            print("No vino 'messages' en el payload")
+            print("=== EVENTO SIN MENSAJE ===")
+            print(cambios)
             return "EVENT_RECEIVED", 200
 
         mensaje_data = cambios["messages"][0]
