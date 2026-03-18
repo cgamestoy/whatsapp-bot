@@ -1,3 +1,4 @@
+print("🔥 VERSION NUEVA DEL BOT 🔥")
 from flask import Flask, request, jsonify, render_template_string
 from database import buscar_productos, listar_productos
 import requests
