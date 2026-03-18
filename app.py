@@ -48,7 +48,6 @@ def procesar_mensaje(mensaje: str) -> str:
             return "No hay productos cargados."
 
         lineas = ["📋 Lista de productos:\n"]
-
         for p in resultados:
             lineas.append(
                 f"- {p['nombre']} | {p['categoria']} | Stock: {p['stock']} | ${p['precio']}"
@@ -108,6 +107,11 @@ def procesar_mensaje(mensaje: str) -> str:
 
 
 def enviar_mensaje_whatsapp(numero: str, texto: str):
+    print("=== DEBUG ENV ===")
+    print("VERIFY_TOKEN:", VERIFY_TOKEN)
+    print("WHATSAPP_TOKEN cargado:", bool(WHATSAPP_TOKEN))
+    print("PHONE_NUMBER_ID:", PHONE_NUMBER_ID)
+
     if not WHATSAPP_TOKEN or not PHONE_NUMBER_ID:
         print("Faltan variables WHATSAPP_TOKEN o PHONE_NUMBER_ID")
         return
@@ -126,8 +130,13 @@ def enviar_mensaje_whatsapp(numero: str, texto: str):
         "text": {"body": texto}
     }
 
-    r = requests.post(url, headers=headers, json=payload, timeout=20)
-    print("Respuesta Meta:", r.status_code, r.text)
+    try:
+        r = requests.post(url, headers=headers, json=payload, timeout=20)
+        print("=== RESPUESTA META ===")
+        print("Status:", r.status_code)
+        print("Body:", r.text)
+    except Exception as e:
+        print("Error enviando mensaje a Meta:", e)
 
 
 @app.route("/", methods=["GET"])
@@ -308,12 +317,19 @@ def webhook():
         token = request.args.get("hub.verify_token")
         challenge = request.args.get("hub.challenge")
 
+        print("=== VERIFY WEBHOOK ===")
+        print("mode:", mode)
+        print("token recibido:", token)
+        print("challenge:", challenge)
+
         if mode == "subscribe" and token == VERIFY_TOKEN:
             return challenge, 200
 
         return "Token inválido", 403
 
     data = request.get_json(silent=True) or {}
+    print("=== PAYLOAD RECIBIDO ===")
+    print(data)
 
     if "mensaje" in data:
         respuesta = procesar_mensaje(data.get("mensaje", ""))
@@ -323,17 +339,25 @@ def webhook():
         cambios = data["entry"][0]["changes"][0]["value"]
 
         if "messages" not in cambios:
+            print("No vino 'messages' en el payload")
             return "EVENT_RECEIVED", 200
 
         mensaje_data = cambios["messages"][0]
 
         if mensaje_data.get("type") != "text":
+            print("Mensaje no es de tipo text:", mensaje_data.get("type"))
             return "EVENT_RECEIVED", 200
 
         numero = mensaje_data["from"]
         mensaje = mensaje_data["text"]["body"]
 
+        print("=== MENSAJE WHATSAPP ===")
+        print("Número:", numero)
+        print("Mensaje:", mensaje)
+
         respuesta = procesar_mensaje(mensaje)
+        print("Respuesta generada:", respuesta)
+
         enviar_mensaje_whatsapp(numero, respuesta)
 
         return "EVENT_RECEIVED", 200
