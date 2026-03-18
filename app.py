@@ -332,8 +332,13 @@ def webhook():
 
         return "Token inválido", 403
 
-    data = request.get_json(silent=True) or {}
-    print("=== PAYLOAD RECIBIDO ===")
+    data = request.get_json(force=True)
+
+    print("=== HEADERS ===")
+    print(dict(request.headers))
+    print("=== RAW DATA ===")
+    print(request.data)
+    print("=== JSON PARSEADO ===")
     print(data)
 
     if "mensaje" in data:
