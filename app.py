@@ -367,8 +367,8 @@ def webhook():
         numero = mensaje_data["from"]
         mensaje = mensaje_data["text"]["body"]
 
-        print("=== MENSAJE WHATSAPP ===")
-        print("Número:", numero)
+        print("=== MENSAJE WHATSAPP ===", flush=True)
+        print("Número:", numero, flush=True)
         print("Mensaje:", mensaje)
 
         respuesta = procesar_mensaje(mensaje)
@@ -386,4 +386,4 @@ def webhook():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
