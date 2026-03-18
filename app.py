@@ -1,4 +1,5 @@
-print("🔥 VERSION NUEVA DEL BOT 🔥")
+print("🔥 VERSION NUEVA DEL BOT 🔥", flush=True)
+
 from flask import Flask, request, jsonify, render_template_string
 from database import buscar_productos, listar_productos
 import requests
@@ -108,13 +109,13 @@ def procesar_mensaje(mensaje: str) -> str:
 
 
 def enviar_mensaje_whatsapp(numero: str, texto: str):
-    print("=== DEBUG ENV ===")
-    print("VERIFY_TOKEN:", VERIFY_TOKEN)
-    print("WHATSAPP_TOKEN cargado:", bool(WHATSAPP_TOKEN))
-    print("PHONE_NUMBER_ID:", PHONE_NUMBER_ID)
+    print("=== DEBUG ENV ===", flush=True)
+    print("VERIFY_TOKEN:", VERIFY_TOKEN, flush=True)
+    print("WHATSAPP_TOKEN cargado:", bool(WHATSAPP_TOKEN), flush=True)
+    print("PHONE_NUMBER_ID:", PHONE_NUMBER_ID, flush=True)
 
     if not WHATSAPP_TOKEN or not PHONE_NUMBER_ID:
-        print("Faltan variables WHATSAPP_TOKEN o PHONE_NUMBER_ID")
+        print("Faltan variables WHATSAPP_TOKEN o PHONE_NUMBER_ID", flush=True)
         return
 
     url = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_ID}/messages"
@@ -131,17 +132,17 @@ def enviar_mensaje_whatsapp(numero: str, texto: str):
         "text": {"body": texto},
     }
 
-    print("=== ENVÍO A META ===")
-    print("URL:", url)
-    print("Payload:", payload)
+    print("=== ENVÍO A META ===", flush=True)
+    print("URL:", url, flush=True)
+    print("Payload:", payload, flush=True)
 
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=20)
-        print("=== RESPUESTA META ===")
-        print("Status:", r.status_code)
-        print("Body:", r.text)
+        print("=== RESPUESTA META ===", flush=True)
+        print("Status:", r.status_code, flush=True)
+        print("Body:", r.text, flush=True)
     except Exception as e:
-        print("Error enviando mensaje a Meta:", e)
+        print("Error enviando mensaje a Meta:", e, flush=True)
 
 
 @app.route("/", methods=["GET"])
@@ -322,10 +323,10 @@ def webhook():
         token = request.args.get("hub.verify_token")
         challenge = request.args.get("hub.challenge")
 
-        print("=== VERIFY WEBHOOK ===")
-        print("mode:", mode)
-        print("token recibido:", token)
-        print("challenge:", challenge)
+        print("=== VERIFY WEBHOOK ===", flush=True)
+        print("mode:", mode, flush=True)
+        print("token recibido:", token, flush=True)
+        print("challenge:", challenge, flush=True)
 
         if mode == "subscribe" and token == VERIFY_TOKEN:
             return challenge, 200
@@ -334,12 +335,14 @@ def webhook():
 
     data = request.get_json(force=True)
 
-    print("=== HEADERS ===")
-    print(dict(request.headers))
-    print("=== RAW DATA ===")
-    print(request.data)
-    print("=== JSON PARSEADO ===")
-    print(data)
+    print("=== HEADERS ===", flush=True)
+    print(dict(request.headers), flush=True)
+
+    print("=== RAW DATA ===", flush=True)
+    print(request.data, flush=True)
+
+    print("=== JSON PARSEADO ===", flush=True)
+    print(data, flush=True)
 
     if "mensaje" in data:
         respuesta = procesar_mensaje(data.get("mensaje", ""))
@@ -350,39 +353,39 @@ def webhook():
         changes = entry["changes"][0]
         cambios = changes["value"]
 
-        print("=== VALUE COMPLETO ===")
-        print(cambios)
+        print("=== VALUE COMPLETO ===", flush=True)
+        print(cambios, flush=True)
 
         if "messages" not in cambios:
-            print("=== EVENTO SIN MENSAJE ===")
-            print(cambios)
+            print("=== EVENTO SIN MENSAJE ===", flush=True)
+            print(cambios, flush=True)
             return "EVENT_RECEIVED", 200
 
         mensaje_data = cambios["messages"][0]
-
-        if mensaje_data.get("type") != "text":
-            print("Mensaje no es de tipo text:", mensaje_data.get("type"))
-            return "EVENT_RECEIVED", 200
-
-        numero = mensaje_data["from"]
-        mensaje = mensaje_data["text"]["body"]
 
         print("=== MENSAJE WHATSAPP ===", flush=True)
 
         numero = mensaje_data.get("from")
         mensaje = mensaje_data.get("text", {}).get("body")
 
+        print("Número:", numero, flush=True)
+        print("Mensaje:", mensaje, flush=True)
+
+        if not mensaje:
+            print("Mensaje vacío o no text", flush=True)
+            return "EVENT_RECEIVED", 200
 
         respuesta = procesar_mensaje(mensaje)
-        print("Respuesta generada:", respuesta)
+
+        print("Respuesta generada:", respuesta, flush=True)
 
         enviar_mensaje_whatsapp(numero, respuesta)
 
         return "EVENT_RECEIVED", 200
 
     except Exception as e:
-        print("Error procesando webhook:", e)
-        print("Payload recibido:", data)
+        print("Error procesando webhook:", e, flush=True)
+        print("Payload recibido:", data, flush=True)
         return "EVENT_RECEIVED", 200
 
 
